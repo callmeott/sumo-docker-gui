@@ -1,4 +1,6 @@
-# Run SUMO on macOS — sumo-docker-gui
+# Sumo Docker GUI
+
+**Run SUMO's graphical tools on macOS — in your browser.**
 
 [Eclipse SUMO](https://eclipse.dev/sumo/) is a free traffic simulation package.
 Its two graphical programs — **netedit** (the network editor) and **sumo-gui**
@@ -13,7 +15,9 @@ container and appear **in your web browser**. The container ships a complete
 SUMO installation, so this is all you need — installing SUMO on the Mac
 itself is optional (see below).
 
-![What you get: a launch page at http://localhost:6080](https://raw.githubusercontent.com/callmeott/sumo-docker-gui/main/docs/index-page.png)
+![The launch page at http://localhost:6080](docs/index-page.png)
+
+![sumo-gui running a Bangkok (Bang Rak) scenario in the browser](docs/sumo-gui-bangkok.png)
 
 ---
 
@@ -130,9 +134,20 @@ All settings live in `.env` (copy of `env.sample`):
 
 After changing `.env`, run `docker compose up -d` again.
 
-Ports `6080` (launcher), `6081` (netedit), `6082` (sumo-gui) are bound to
-`127.0.0.1` on purpose — the sessions are unauthenticated, so they are only
-reachable from your own Mac. Don't re-bind them to a public interface.
+## Security
+
+This tool is designed for use on your own Mac only:
+
+- Ports `6080`–`6082` are bound to `127.0.0.1`, so nothing is reachable from
+  the network. Don't re-bind them to a public interface — the GUI sessions
+  are not designed for shared or remote use.
+- Every GUI session is protected by a random per-start token (browsers let
+  any website open WebSockets to localhost; without the token such a
+  connection is refused).
+- The launcher endpoint validates the `Host` header and requires a custom
+  request header, blocking DNS-rebinding and cross-site form attacks.
+- The container only sees the folder you set as `SUMO_DATA` (as `/data`);
+  the rest of your Mac is not visible to it.
 
 ## Troubleshooting
 
