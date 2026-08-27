@@ -9,8 +9,9 @@ layer (OpenGL in XQuartz) that they depend on
 something you can fix by reinstalling.
 
 This project is the workaround: the two GUI programs run inside a Docker
-container and appear **in your web browser**. Everything else about SUMO
-(the command-line tools) still runs normally on your Mac.
+container and appear **in your web browser**. The container ships a complete
+SUMO installation, so this is all you need — installing SUMO on the Mac
+itself is optional (see below).
 
 ![What you get: a launch page at http://localhost:6080](https://raw.githubusercontent.com/callmeott/sumo-docker-gui/main/docs/index-page.png)
 
@@ -18,47 +19,10 @@ container and appear **in your web browser**. Everything else about SUMO
 
 ## Setup (once)
 
-You need four things. Steps 1–2 give you SUMO's command-line tools on the
-Mac; steps 3–4 give you the GUI in the browser. Allow ~20 minutes.
+Only two steps — the container brings its own complete SUMO installation,
+so you do **not** need to install SUMO on the Mac first. Allow ~15 minutes.
 
-### Step 1 — Install SUMO itself
-
-1. Go to the SUMO downloads page: <https://sumo.dlr.de/docs/Downloads.php>
-2. Under **macOS**, download the installer: `sumo-<version>.pkg`
-3. Double-click the downloaded file and follow the installer.
-   (If macOS refuses to open it, right-click the file → **Open** → **Open**.)
-
-This installs SUMO into
-`/Library/Frameworks/EclipseSUMO.framework`.
-
-### Step 2 — Tell your Terminal where SUMO is (`SUMO_HOME`)
-
-SUMO's command-line tools need an environment variable called `SUMO_HOME`.
-Open the **Terminal** app and paste this whole block, then press Enter:
-
-```bash
-cat >> ~/.zshrc <<'EOF'
-export SUMO_HOME="/Library/Frameworks/EclipseSUMO.framework/Versions/Current/EclipseSUMO/share/sumo"
-export PATH="$SUMO_HOME/bin:$PATH"
-EOF
-```
-
-> **If your Terminal uses bash** instead of zsh (zsh is the macOS default;
-> the window title says which), run the same block but with
-> `~/.bash_profile` in place of `~/.zshrc`.
-
-Now **close the Terminal window and open a new one**, then check that it
-worked:
-
-```bash
-sumo --version
-```
-
-You should see something like `Eclipse SUMO sumo 1.27.1`. ✅
-(Don't worry that `sumo-gui` and `netedit` won't open — that's what the next
-steps are for.)
-
-### Step 3 — Install Docker Desktop
+### Step 1 — Install Docker Desktop
 
 1. Download **Docker Desktop for Mac** (Apple silicon):
    <https://www.docker.com/products/docker-desktop/>
@@ -67,7 +31,7 @@ steps are for.)
 
 Docker must be running whenever you use the GUI.
 
-### Step 4 — Get this tool and start it
+### Step 2 — Get this tool and start it
 
 In Terminal:
 
@@ -101,7 +65,7 @@ buttons for netedit and sumo-gui. Bookmark it. **Setup done.**
 ### Where do my files go?
 
 Your SUMO files live in the **`~/Sumo`** folder on your Mac (created in
-step 4; change it by editing `SUMO_DATA` in the `.env` file). Inside
+step 2; change it by editing `SUMO_DATA` in the `.env` file). Inside
 netedit / sumo-gui, that same folder is called **`/data`**:
 
 | On your Mac | Inside the GUI |
@@ -123,6 +87,34 @@ plain, or add arguments before clicking **Launch / Restart**, e.g.:
 All options are in the [sumo-gui](https://sumo.dlr.de/docs/sumo-gui.html) and
 [netedit](https://sumo.dlr.de/docs/netedit.html) documentation. **Open
 window** shows the running program without restarting it.
+
+### Command-line tools (netconvert, duarouter, …)
+
+The rest of SUMO is command-line only. Two ways to use it:
+
+- **Inside the container (nothing extra to install):**
+
+  ```bash
+  docker compose exec sumo-gui bash
+  # you now have sumo, netconvert, duarouter, ... with your files in /data
+  ```
+
+- **Natively on the Mac (optional):** install SUMO from
+  <https://sumo.dlr.de/docs/Downloads.php> (under **macOS**, the
+  `sumo-<version>.pkg` installer; if macOS refuses to open it, right-click →
+  **Open**), then tell your Terminal where it is by pasting this block:
+
+  ```bash
+  cat >> ~/.zshrc <<'EOF'
+  export SUMO_HOME="/Library/Frameworks/EclipseSUMO.framework/Versions/Current/EclipseSUMO/share/sumo"
+  export PATH="$SUMO_HOME/bin:$PATH"
+  EOF
+  ```
+
+  (If your Terminal uses bash instead of zsh, use `~/.bash_profile` in place
+  of `~/.zshrc`.) Open a new Terminal window and check with `sumo --version`.
+  The GUI programs still won't open natively — that's what this project is
+  for — but all command-line tools will work.
 
 ---
 
@@ -155,9 +147,8 @@ reachable from your own Mac. Don't re-bind them to a public interface.
 ## Notes & limitations
 
 - netedit and sumo-gui are the only windowed SUMO programs; all other tools
-  (netconvert, duarouter, the Python tools, …) are command-line. Run them
-  natively in Terminal (steps 1–2 set that up) or inside the container with
-  `docker compose exec sumo-gui bash`.
+  (netconvert, duarouter, the Python tools, …) are command-line — see
+  "Command-line tools" above for running them in the container or natively.
 - Quitting a program in the GUI just respawns it — use the launch page to
   restart it with different arguments.
 - The upstream SUMO image is linux/amd64; on Apple silicon it runs under
