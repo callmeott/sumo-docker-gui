@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SUMO GUI</title>
+<style>
+  body { font-family: -apple-system, "Helvetica Neue", sans-serif;
+         background: #1e2227; color: #e8eaed; margin: 0; padding: 40px 16px;
+         display: flex; flex-direction: column; align-items: center;
+         min-height: calc(100vh - 80px); justify-content: center; }
+  h1 { font-weight: 600; margin-bottom: 0.2em; }
+  p.sub { color: #9aa0a6; margin-top: 0; }
+  .cards { display: flex; gap: 24px; margin: 28px 0 8px; flex-wrap: wrap; justify-content: center; }
+  .card { width: 330px; padding: 22px; border-radius: 12px;
+          background: #2b3138; border: 1px solid #3c434c; }
+  .card h2 { margin: 0 0 8px; font-size: 1.25em; color: #8ab4f8; }
+  .card p { margin: 0 0 14px; color: #bdc1c6; font-size: 0.9em; line-height: 1.45; }
+  .card label { display: block; color: #9aa0a6; font-size: 0.75em; margin-bottom: 4px; }
+  .cmdline { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; }
+  .cmdline span.prog { color: #e8eaed; font-family: ui-monospace, monospace; font-size: 0.85em; }
+  .cmdline input { flex: 1; background: #1e2227; color: #e8eaed; border: 1px solid #3c434c;
+                   border-radius: 6px; padding: 7px 9px; font-family: ui-monospace, monospace;
+                   font-size: 0.85em; }
+  .cmdline input:focus { outline: none; border-color: #8ab4f8; }
+  .buttons { display: flex; gap: 10px; }
+  button, a.open { flex: 1; text-align: center; padding: 9px 0; border-radius: 8px;
+                   font-size: 0.9em; cursor: pointer; text-decoration: none; }
+  button { background: #8ab4f8; color: #1e2227; border: none; font-weight: 600; }
+  button:hover { background: #aecbfa; }
+  a.open { background: transparent; color: #8ab4f8; border: 1px solid #3c434c; }
+  a.open:hover { border-color: #8ab4f8; }
+  .note { max-width: 620px; color: #9aa0a6; font-size: 0.85em;
+          line-height: 1.6; text-align: center; }
+  .note a, .footer a { color: #8ab4f8; text-decoration: none; }
+  .footer { margin-top: 28px; color: #9aa0a6; font-size: 0.85em; text-align: center; }
+  code { background: #2b3138; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>Eclipse SUMO</h1>
+<p class="sub">GUI applications in your browser</p>
+<div class="cards">
+  <div class="card">
+    <h2>netedit</h2>
+    <p>Network editor — create and edit networks, demand and
+       additional infrastructure. Press <b>E</b> to draw edges.</p>
+    <form method="POST" action="/launch">
+      <input type="hidden" name="app" value="netedit">
+      <label for="netedit-args">command line (editable)</label>
+      <div class="cmdline"><span class="prog">netedit</span>
+        <input id="netedit-args" name="args" placeholder="e.g. -s /data/net.net.xml"></div>
+      <div class="buttons">
+        <button type="submit">Launch / Restart</button>
+        <a class="open" id="netedit-open" href="#">Open window</a>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <h2>sumo-gui</h2>
+    <p>Simulation viewer — open a .sumocfg or network and run the
+       traffic simulation interactively.</p>
+    <form method="POST" action="/launch">
+      <input type="hidden" name="app" value="sumo-gui">
+      <label for="sumo-gui-args">command line (editable)</label>
+      <div class="cmdline"><span class="prog">sumo-gui</span>
+        <input id="sumo-gui-args" name="args" placeholder="e.g. -c /data/run.sumocfg"></div>
+      <div class="buttons">
+        <button type="submit">Launch / Restart</button>
+        <a class="open" id="sumo-gui-open" href="#">Open window</a>
+      </div>
+    </form>
+  </div>
+</div>
+<p class="note">
+  <b>Launch / Restart</b> restarts the program with the given arguments
+  (takes a few seconds; the window reloads). <b>Open window</b> just views
+  the running instance. Your data folder is mounted at <code>/data</code>.
+  netedit and sumo-gui are the only windowed SUMO programs — the rest
+  (netconvert, duarouter, &hellip;) are command-line:
+  <code>docker compose exec sumo-gui bash</code>.
+</p>
+<p class="footer">
+  Powered by <a href="https://eclipse.dev/sumo/">Eclipse SUMO</a>
+  &nbsp;&middot;&nbsp; <a href="https://sumo.dlr.de/docs/">Documentation</a>
+  &nbsp;&middot;&nbsp; not affiliated with the SUMO project
+</p>
+<script>
+  var host = location.hostname;
+  var vnc = '/vnc.html?autoconnect=true&resize=scale';
+  document.getElementById('netedit-open').href  = 'http://' + host + ':6081' + vnc;
+  document.getElementById('sumo-gui-open').href = 'http://' + host + ':6082' + vnc;
+  fetch('/args').then(function (r) { return r.json(); }).then(function (a) {
+    document.getElementById('netedit-args').value  = a['netedit']  || '';
+    document.getElementById('sumo-gui-args').value = a['sumo-gui'] || '';
+  });
+</script>
+</body>
+</html>
