@@ -10,6 +10,9 @@ in a browser — any website can send requests to it):
   * /launch requires the X-Requested-With header -> blocks cross-site form
     POSTs; cross-origin fetch with a custom header needs a CORS preflight,
     which this server never approves
+  * /launch validates the Origin header when present -> browsers always send
+    it on POST, and pages cannot forge it, so a browser request must come
+    from our own page (absent Origin = non-browser client, e.g. local curl)
   * viewer URLs carry per-start random tokens (enforced by websockify);
     they are only readable same-origin, so other websites can't obtain them
 """
@@ -55,6 +58,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_error(403, "forbidden host")
         return False
 
+    def origin_allowed(self):
+        origin = self.headers.get("Origin")
+        if origin is None:
+            return True  # non-browser client (e.g. curl on this machine)
+        if urllib.parse.urlsplit(origin).hostname in {"localhost",
+                                                      "127.0.0.1", "::1"}:
+            return True
+        self.send_error(403, "forbidden origin")
+        return False
+
     def send_json(self, obj):
         body = json.dumps(obj).encode()
         self.send_response(200)
@@ -80,7 +93,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self):
-        if not self.host_allowed():
+        if not self.host_allowed() or not self.origin_allowed():
             return
         if self.path.rstrip("/") != "/launch":
             self.send_error(404)

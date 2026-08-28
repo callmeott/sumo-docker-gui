@@ -144,8 +144,9 @@ This tool is designed for use on your own Mac only:
 - Every GUI session is protected by a random per-start token (browsers let
   any website open WebSockets to localhost; without the token such a
   connection is refused).
-- The launcher endpoint validates the `Host` header and requires a custom
-  request header, blocking DNS-rebinding and cross-site form attacks.
+- The launcher endpoint validates the `Host` and `Origin` headers and
+  requires a custom request header, blocking DNS-rebinding and cross-site
+  request forgery.
 - The container only sees the folder you set as `SUMO_DATA` (as `/data`);
   the rest of your Mac is not visible to it.
 
