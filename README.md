@@ -164,6 +164,26 @@ So "opening netedit" really means: your browser tab (noVNC) connects through
 websockify to x11vnc, which shows you virtual screen `:1`, where netedit is
 drawing. The launch page is just a remote control on the side.
 
+### The three ports
+
+| Port | What answers there | What it's for |
+| --- | --- | --- |
+| `6080` | gui-server.py | The launch page, and its API (save arguments, restart a program, hand out tokened viewer links) |
+| `6081` | websockify (netedit) | The netedit viewer tab: serves the noVNC page and carries its screen stream |
+| `6082` | websockify (sumo-gui) | The sumo-gui viewer tab: same, for sumo-gui |
+
+All three must be reachable from your browser — each viewer tab talks
+directly to its own port, so none of them can be dropped. The raw VNC ports
+(`5901`/`5902`, x11vnc) are intentionally **not** published: they exist only
+inside the container, behind websockify's token check.
+
+### Launch / Restart vs. Open window
+
+| Button | What it does | When to use it |
+| --- | --- | --- |
+| **Launch / Restart** | Saves the command-line box, **stops the running program and starts it again** with those arguments, then opens the viewer tab | Opening a file from the launch page, or changing arguments — note it discards unsaved work in that program |
+| **Open window** | Just opens the viewer tab of the **already-running** program — the command-line box is ignored, nothing restarts | Getting back to a session (e.g. after closing the tab); the tab and the program are independent — closing a tab never stops the program |
+
 ## Configuration
 
 All settings live in `.env` (copy of `env.sample`):
