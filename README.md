@@ -164,6 +164,40 @@ So "opening netedit" really means: your browser tab (noVNC) connects through
 websockify to x11vnc, which shows you virtual screen `:1`, where netedit is
 drawing. The launch page is just a remote control on the side.
 
+### Why websockify? (the missing-cable problem)
+
+JavaScript in a browser **cannot open a raw TCP connection** — ever. A web
+page gets exactly two kinds of network access: HTTP requests and
+**WebSockets**. That's a deliberate browser security restriction.
+
+But VNC is a raw TCP protocol (called RFB, "remote framebuffer"). The noVNC
+viewer in your tab is a complete VNC client written in JavaScript — it speaks
+RFB perfectly — but it physically cannot dial `tcp://localhost:5901`. The
+only cable it is allowed to use is a WebSocket.
+
+**websockify is the adapter between those two worlds** (the name is literal:
+it "WebSocket-ifies" a TCP service). It accepts a WebSocket on one side,
+opens a plain TCP connection to x11vnc on the other, and shovels bytes
+between them, wrapping/unwrapping the WebSocket framing as they pass:
+
+```
+noVNC (in your tab)               websockify                     x11vnc
+speaks RFB, but only ─ WebSocket ─▶ unwrap frames ── raw TCP ──▶ speaks RFB
+inside WebSocket     ◀───────────  wrap frames   ◀────────────  over plain
+frames — port 6081                                              TCP — 5901
+```
+
+It never looks inside the bytes — it's a dumb pipe with a WebSocket plug on
+one end and a TCP plug on the other. In this project it wears two extra hats
+besides the pipe: it serves the noVNC viewer files (`vnc.html` + JavaScript)
+on the same port, and it checks the session token before connecting the pipe.
+
+The full journey of one netedit frame to your eye: netedit draws on virtual
+screen `:1` → x11vnc encodes the changed pixels as RFB over TCP →
+websockify wraps them into WebSocket frames → out through port 6081 to your
+browser → noVNC unwraps and paints the canvas you're looking at. Your mouse
+clicks travel the same road in reverse.
+
 ### The three ports
 
 | Port | What answers there | What it's for |
