@@ -279,7 +279,7 @@
       <a class="open" id="netedit-open" href="#">Open netedit</a>
       <form method="POST" action="/launch">
         <input type="hidden" name="app" value="netedit">
-        <details id="netedit-details">
+        <details id="netedit-details" open>
           <summary>Command-line options</summary>
           <p class="hint">Restarting closes the running program &mdash; unsaved
              work is lost. You can also just open files from netedit's own
@@ -299,7 +299,7 @@
       <a class="open" id="sumo-gui-open" href="#">Open sumo-gui</a>
       <form method="POST" action="/launch">
         <input type="hidden" name="app" value="sumo-gui">
-        <details id="sumo-gui-details">
+        <details id="sumo-gui-details" open>
           <summary>Command-line options</summary>
           <p class="hint">Restarting closes the running program &mdash; unsaved
              work is lost. You can also just open files from sumo-gui's own
@@ -341,8 +341,6 @@
       Object.keys(s).forEach(function (app) {
         document.getElementById(app + '-args').value = s[app].args || '';
         document.getElementById(app + '-open').href = s[app].url;
-        // reveal the options if this program was started with arguments
-        if (s[app].args) document.getElementById(app + '-details').open = true;
       });
     });
   }
