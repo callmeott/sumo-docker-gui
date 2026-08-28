@@ -62,8 +62,8 @@ buttons for netedit and sumo-gui. Bookmark it. **Setup done.**
 
 - **Start** (e.g. after a reboot): open Docker Desktop, then in Terminal:
   `cd sumo-docker-gui && docker compose up -d`
-- **Open the GUI:** go to <http://localhost:6080>, click **Launch / Restart**
-  on the program you want. It opens in a new tab.
+- **Open the GUI:** go to <http://localhost:6080> and click **Open netedit**
+  or **Open sumo-gui**. It opens in a new tab.
 - **Stop:** `docker compose stop` (or just quit Docker Desktop).
 
 ### Where do my files go?
@@ -82,15 +82,16 @@ is visible to the container.
 
 ### The editable command line
 
-Each launch card has a command-line box. Leave it empty to start the program
-plain, or add arguments before clicking **Launch / Restart**, e.g.:
+Usually you don't need it — open your files from the program's own **File**
+menu. But each card has a **Command-line options** box if you'd rather start
+a program with arguments; type them and click **Restart with these options**:
 
 - netedit: `-s /data/mynet.net.xml` (open a network)
 - sumo-gui: `-c /data/run.sumocfg` (open a simulation configuration)
 
 All options are in the [sumo-gui](https://sumo.dlr.de/docs/sumo-gui.html) and
-[netedit](https://sumo.dlr.de/docs/netedit.html) documentation. **Open
-window** shows the running program without restarting it.
+[netedit](https://sumo.dlr.de/docs/netedit.html) documentation. Restarting
+discards unsaved work in that program.
 
 ### Command-line tools (netconvert, duarouter, …)
 
