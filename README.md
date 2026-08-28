@@ -211,12 +211,26 @@ directly to its own port, so none of them can be dropped. The raw VNC ports
 (`5901`/`5902`, x11vnc) are intentionally **not** published: they exist only
 inside the container, behind websockify's token check.
 
-### Launch / Restart vs. Open window
+### What happens on restart, and the two buttons
+
+**Both programs start automatically** when the container starts — there is
+always something running to look at. That shapes the two buttons:
 
 | Button | What it does | When to use it |
 | --- | --- | --- |
-| **Launch / Restart** | Saves the command-line box, **stops the running program and starts it again** with those arguments, then opens the viewer tab | Opening a file from the launch page, or changing arguments — note it discards unsaved work in that program |
-| **Open window** | Just opens the viewer tab of the **already-running** program — the command-line box is ignored, nothing restarts | Getting back to a session (e.g. after closing the tab); the tab and the program are independent — closing a tab never stops the program |
+| **Open netedit / Open sumo-gui** | Opens the viewer tab of the **already-running** program. Nothing restarts | Almost always. The tab and the program are independent — closing a tab never stops the program |
+| **Command-line options → Restart with these options** | Saves the command line, **stops the program and starts it again** with those arguments | Only to change arguments — it discards unsaved work. You can also just open files from the program's own **File** menu |
+
+After a restart, note:
+
+| You run | Command-line arguments | Viewer links |
+| --- | --- | --- |
+| `docker compose stop` → `start` | **Kept** (same container) | **Change** — tokens are regenerated |
+| `docker compose down` → `up` | **Reset** (new container) | **Change** — tokens are regenerated |
+
+Because the session tokens are regenerated on every start, old viewer URLs
+stop working. Bookmark the launch page (<http://localhost:6080>), not the
+viewer tabs — it always hands out current links.
 
 ## Configuration
 
