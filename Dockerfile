@@ -9,6 +9,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sed -i 's|</applications>|<application type="normal"><maximized>yes</maximized></application></applications>|' \
     /etc/xdg/openbox/rc.xml
 
+# Visiting :6081/:6082 directly (without a tokened link) shows websockify's
+# directory listing of the noVNC files — replace it with a bounce to the
+# launch page, which is the only useful destination.
+RUN printf '%s\n' \
+      '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sumo Docker GUI</title></head>' \
+      '<body style="font-family:sans-serif;background:#0c0e11;color:#e9ecef;text-align:center;padding-top:20vh">' \
+      '<p>GUI sessions are opened from the launch page&hellip;</p>' \
+      '<p><a id="l" style="color:#f5b942">Go to the launch page</a></p>' \
+      '<script>var u="http://"+location.hostname+":6080/";document.getElementById("l").href=u;location.replace(u);</script>' \
+      '</body></html>' > /usr/share/novnc/index.html
+
 COPY web/index.html /web/index.html
 COPY scripts/gui-server.py /usr/local/bin/gui-server.py
 COPY scripts/start-gui.sh /usr/local/bin/start-gui.sh
