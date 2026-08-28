@@ -122,6 +122,48 @@ The rest of SUMO is command-line only. Two ways to use it:
 
 ---
 
+## How it works — what is actually running?
+
+Everything lives in one Docker container. Each program gets its own invisible
+"virtual screen"; a small chain of helpers streams that screen to a browser
+tab and sends your mouse/keyboard back:
+
+```
+        YOUR MAC                       │              DOCKER CONTAINER
+                                       │
+  Browser — launch page                │
+  localhost:6080 ───────── HTTP ───────┼──▶ gui-server.py — serves the page; on
+                                       │    "Launch/Restart" saves the command
+                                       │    line and restarts that program
+                                       │
+  Browser — netedit tab                │
+  localhost:6081 ── WebSocket + token ─┼──▶ websockify ──▶ x11vnc ──▶ screen :1
+                                       │    (gatekeeper)    (VNC)        ▲ draws
+                                       │                              netedit
+  Browser — sumo-gui tab               │
+  localhost:6082 ── WebSocket + token ─┼──▶ websockify ──▶ x11vnc ──▶ screen :2
+                                       │    (gatekeeper)    (VNC)        ▲ draws
+                                       │                              sumo-gui
+                                       │
+  ~/Sumo folder ◀══════════ shared as /data ══════════▶ files the programs
+  (SUMO_DATA)                          │                open and save
+```
+
+The pieces, one line each:
+
+| Piece | Role |
+| --- | --- |
+| **Xvfb** (screens `:1`, `:2`) | An invisible virtual monitor that each program draws on |
+| **netedit / sumo-gui** | The actual SUMO programs, drawing on their own virtual monitor; auto-respawn if closed |
+| **x11vnc** | Watches a virtual monitor and speaks VNC (screen out, mouse/keyboard in); reachable only inside the container |
+| **websockify** | Bridges the browser's WebSocket to x11vnc's VNC — and rejects any connection without the session token |
+| **gui-server.py** | The launch page and its small API (save arguments, restart a program, hand out the tokened links) |
+| **noVNC** | The JavaScript in the browser tab that turns the VNC stream into pixels you can click on |
+
+So "opening netedit" really means: your browser tab (noVNC) connects through
+websockify to x11vnc, which shows you virtual screen `:1`, where netedit is
+drawing. The launch page is just a remote control on the side.
+
 ## Configuration
 
 All settings live in `.env` (copy of `env.sample`):
